@@ -1,0 +1,44 @@
+select * from STA_OSDB ;
+select * from sta_employee;
+
+update sta_employee p 
+       set (dept_no,salary) = (select 10,100 from dual) 
+where p.employee_id=6;
+
+
+begin
+    dbms_output.put_line('Hello World');
+
+end;
+
+begin
+      FOR emp in (select * from sta_employee)
+      loop
+        dbms_output.put_line(emp.first_name);
+      end loop;
+end;
+
+
+
+-- MERGE INTO --Use the MERGE statement to select rows from one or more sources for update or insertion into a table or view. 
+CREATE TABLE bonuses (employee_id NUMBER, bonus NUMBER DEFAULT 100);
+
+INSERT INTO bonuses(employee_id)
+   (SELECT e.employee_id FROM sta_employee e, orders o
+   WHERE e.employee_id = o.sales_rep_id
+   GROUP BY e.employee_id); 
+
+SELECT * FROM bonuses ORDER BY employee_id;
+
+MERGE INTO bonuses D
+   USING (SELECT employee_id, salary, department_id FROM employees
+   WHERE department_id = 80) S
+         ON (D.employee_id = S.employee_id)
+   WHEN MATCHED THEN UPDATE SET D.bonus = D.bonus + S.salary*.01
+     DELETE WHERE (S.salary > 8000)
+   WHEN NOT MATCHED THEN INSERT (D.employee_id, D.bonus)
+     VALUES (S.employee_id, S.salary*.01)
+     WHERE (S.salary <= 8000);
+
+SELECT * FROM bonuses ORDER BY employee_id;
+
